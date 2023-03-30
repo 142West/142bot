@@ -12,10 +12,7 @@ Bot::Bot(bool devel, dpp::cluster* cluster) {
     dev = devel;
     this->core = cluster;
     this->loader = new ModuleLoader(this);
-    if (!this->loader->load("module_mmanager.so")) {
-        this->core->log(dpp::ll_error, "Couldn't load modulemanager");
-        exit(-1);
-    }
+	this->loader->load_all();
 //    this->loader->LoadAll();
 }
 

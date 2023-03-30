@@ -182,6 +182,22 @@ bool ModuleLoader::reload(const std::string &filename)
 	return (unload(filename) && load(filename));
 }
 
+
+/**
+ * Load all modules from the config file modules.json
+ */
+void ModuleLoader::load_all()
+{
+	json document;
+	std::ifstream configfile("./config.json");
+	configfile >> document;
+	json modlist = document["modules"];
+	for (auto entry = modlist.begin(); entry != modlist.end(); ++entry) {
+		std::string modulename = entry->get<std::string>();
+		this->load(modulename);
+	}
+}
+
 /**
  * Return a given symbol name from a shared object represented by the ModuleNative value.
  */

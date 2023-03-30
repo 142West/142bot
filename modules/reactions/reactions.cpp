@@ -2,6 +2,7 @@
 #include <dpp/json.h>
 #include <stdlib.h>
 #include <142bot/modules.hpp>
+#include <142bot/util.hpp>
 #include <fmt/format.h>
 
 using std::to_string;
@@ -28,7 +29,7 @@ public:
     }
 	virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> &stringmentions) {
         for (auto i = reactionMap.begin(); i != reactionMap.end(); i++) {
-            if (clean_message.find(i->first) != std::string::npos) {
+            if (lowercase(clean_message).find(i->first) != std::string::npos) {
                 bot->core->message_add_reaction(message.msg, i->second);
                 bot->core->log(dpp::ll_debug, "Adding reaction based on keyword");
             }

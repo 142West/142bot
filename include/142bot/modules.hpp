@@ -136,6 +136,8 @@ public:
     // Unloads and then reloads a module
     bool reload(const std::string &fname);
 
+	void load_all();
+
     // Get list of loaded modules
     const ModuleMap& get_loaded_modules() const;
 };
