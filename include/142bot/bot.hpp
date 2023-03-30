@@ -1,3 +1,4 @@
+#include <dpp/snowflake.h>
 #include <dpp/user.h>
 #include <dpp/dpp.h>
 
@@ -8,6 +9,7 @@ class Module;
 class ModuleLoader;
 class Bot {
     bool dev;
+    dpp::snowflake owner_id;
 
 public:
     class dpp::cluster * core;
@@ -16,6 +18,9 @@ public:
 
     Bot(bool development, dpp::cluster* cluster);
     //virtual ~Bot();
+    
+    void set_owner_id(dpp::snowflake id);
+    dpp::snowflake get_owner_id();
 
 	ModuleLoader* loader;
 

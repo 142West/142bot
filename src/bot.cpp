@@ -1,4 +1,5 @@
 
+#include <dpp/snowflake.h>
 #include <stdlib.h>
 #include <142bot/bot.hpp>
 #include <dpp/dpp.h>
@@ -20,6 +21,14 @@ Bot::Bot(bool devel, dpp::cluster* cluster) {
 
 bool Bot::isDevMode() {
     return dev;
+}
+
+void Bot::set_owner_id(dpp::snowflake id) {
+    this->owner_id = id;
+}
+
+dpp::snowflake Bot::get_owner_id() {
+    return this->owner_id;
 }
 
 int64_t Bot::getID() {
@@ -127,9 +136,8 @@ void Bot::onGuildUpdate(const dpp::guild_update_t &obj)
 }
 
 
-void Bot::onMessageReactionAdd(const dpp::message_reaction_add_t &obj)
-{
-	
+void Bot::onMessageReactionAdd(const dpp::message_reaction_add_t &obj) {
+	FOREACH_MOD(I_OnMessageReactionAdd, OnMessageReactionAdd(obj));	
 }
 
 

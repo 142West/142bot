@@ -116,7 +116,7 @@ bool ModuleLoader::load(const std::string &fname) {
                     dlclose(m.dlopen_handle);
                     return false;
                 } else {
-                    bot->core->log(dpp::ll_info, fmt::format("Loaded module {}", m.mod->description()));
+                    bot->core->log(dpp::ll_info, fmt::format("Loaded {} ({})", m.mod->description(), m.mod->version()));
                     Modules[fname] = m;
                     mod_map[fname] = m.mod;
                     return true;
@@ -171,6 +171,15 @@ bool ModuleLoader::unload(const std::string &fname) {
 
     return true;
     
+}
+
+
+bool ModuleLoader::reload(const std::string &filename)
+{
+	/* Short-circuit evaluation here means that if Unload() returns false,
+	 * Load() won't be called at all.
+	 */
+	return (unload(filename) && load(filename));
 }
 
 /**
@@ -410,3 +419,31 @@ bool Module::OnAllShardsReady()
 }
 
 
+
+/**
+ * Output a simple embed to a channel consisting just of a message.
+ */
+void Module::EmbedSimple(const std::string &message, int64_t channelID)
+{
+	std::stringstream s;
+	json embed_json;
+
+	s << "{\"color\":16767488, \"description\": \"" << message << "\"}";
+
+	try {
+		embed_json = json::parse(s.str());
+	}
+	catch (const std::exception &e) {
+		bot->core->log(dpp::ll_error, fmt::format("Invalid json for channel {} created by EmbedSimple: ", channelID, s.str()));
+	}
+	dpp::channel* channel = dpp::find_channel(channelID);
+	if (channel) {
+			dpp::message m;
+			m.channel_id = channel->id;
+			m.embeds.push_back(dpp::embed(&embed_json));
+			bot->core->message_create(m);
+		
+	} else {
+		bot->core->log(dpp::ll_error, fmt::format("Invalid channel {} passed to EmbedSimple", channelID));
+	}
+}

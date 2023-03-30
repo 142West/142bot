@@ -6,6 +6,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <string>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ int main(int argc, char const *argv[]) {
 		log = std::make_shared<spdlog::async_logger>("logs", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 		spdlog::register_logger(log);
 		log->set_pattern("%^%Y-%m-%d %H:%M:%S.%e [%L] [th#%t]%$ : %v");
-		log->set_level(spdlog::level::level_enum::debug);	
+		log->set_level(spdlog::level::level_enum::trace);	
 
 		/* Integrate spdlog logger to D++ log events */
 		bot.on_log([&bot, &log](const dpp::log_t & event) {
@@ -59,9 +60,12 @@ int main(int argc, char const *argv[]) {
 
     Bot client(0, &bot);
 
+    client.set_owner_id(dpp::snowflake(cfg.value("owner", "00000000000")));
+
     		/* Attach events to the Bot class methods */
 		bot.on_message_create(std::bind(&Bot::onMessage, &client, std::placeholders::_1));
 		bot.on_ready(std::bind(&Bot::onReady, &client, std::placeholders::_1));
+		bot.on_message_reaction_add(std::bind(&Bot::onMessageReactionAdd, &client, std::placeholders::_1));
 
     bot.start(dpp::st_wait);
     return 0;

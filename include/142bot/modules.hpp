@@ -134,7 +134,7 @@ public:
     bool unload(const std::string &fname);
 
     // Unloads and then reloads a module
-    void reload(const std::string &fname);
+    bool reload(const std::string &fname);
 
     // Get list of loaded modules
     const ModuleMap& get_loaded_modules() const;
@@ -186,6 +186,7 @@ public:
 	virtual bool OnVoiceStateUpdate(const dpp::voice_state_update_t &obj);
 	virtual bool OnVoiceServerUpdate(const dpp::voice_server_update_t &obj);
 	virtual bool OnWebhooksUpdate(const dpp::webhooks_update_t &obj);
+	void EmbedSimple(const std::string &message, int64_t channelID);
 };
 
 /* A macro that lets us simply define the entrypoint of a module by name */

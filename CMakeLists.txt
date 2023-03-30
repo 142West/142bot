@@ -16,6 +16,8 @@ FetchContent_Declare(dpp
     
 FetchContent_MakeAvailable(clog dpp)
 
+include(cmake/FindPCRE.cmake)
+
 find_package(fmt)
 
 string(ASCII 27 Esc)
@@ -24,7 +26,7 @@ aux_source_directory("src" coresrc)
 add_executable(142bot ${coresrc})
 
 include_directories("include")
-target_link_libraries(142bot clog dpp fmt spdlog)
+target_link_libraries(142bot clog dpp fmt spdlog pcre)
 
 set (modules_dir "modules")
 file(GLOB subdirlist ${modules_dir}/*)
