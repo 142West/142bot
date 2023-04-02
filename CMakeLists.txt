@@ -13,8 +13,19 @@ FetchContent_Declare(dpp
     GIT_REPOSITORY https://github.com/brainboxdotcc/DPP
     GIT_TAG v10.0.23
 )
+
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
+                         GIT_TAG 871ed52d350214a034f6ef8a3b8f51c5ce1bd400) # The commit hash for 1.9.0. Replace with the latest from: https://github.com/libcpr/cpr/releases
+
+FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt
+                        GIT_TAG 9.1.0)
+
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog
+    GIT_TAG v1.1.0
+    )
     
-FetchContent_MakeAvailable(clog dpp)
+FetchContent_MakeAvailable(clog dpp cpr fmt spdlog)
 
 include(cmake/FindPCRE.cmake)
 
@@ -22,11 +33,14 @@ find_package(fmt)
 
 string(ASCII 27 Esc)
 
+include(GNUInstallDirs)
 aux_source_directory("src" coresrc)
 add_executable(142bot ${coresrc})
 
 include_directories("include")
-target_link_libraries(142bot clog dpp fmt spdlog pcre)
+target_link_libraries(142bot clog dpp fmt spdlog pcre cpr::cpr)
+
+install(TARGETS 142bot)
 
 set (modules_dir "modules")
 file(GLOB subdirlist ${modules_dir}/*)
@@ -36,5 +50,6 @@ foreach (fullmodname ${subdirlist})
     set (modsrc "")
     aux_source_directory(${modules_dir}/${modname} modsrc)
     add_library(module_${modname} SHARED ${modsrc})
+    install(TARGETS module_${modname} RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/142bot/")
     set_target_properties(module_${modname} PROPERTIES PREFIX "")
 endforeach(fullmodname)
