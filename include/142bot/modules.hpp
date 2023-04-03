@@ -73,7 +73,8 @@ enum Events
 	{ \
 		try \
 		{ \
-			if (!(*_i)->x) { \
+			if (!(*_i)->x) {        \
+                list_to_call = loader->EventHandlers[y];           \
 				break; \
 			} \
 		} \

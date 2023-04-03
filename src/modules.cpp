@@ -57,7 +57,7 @@ ModuleLoader::ModuleLoader(Bot* creator): bot(creator) {
 void ModuleLoader::attach(const std::vector<Events> &i, Module* m) {
     for (auto n = i.begin(); n != i.end(); ++n) {
         if (std::find(EventHandlers[*n].begin(), EventHandlers[*n].end(), m) == EventHandlers[*n].end()) {
-            EventHandlers[*n].push_back(m);
+            EventHandlers[*n].insert(EventHandlers[*n].begin(), m);
             bot->core->log(dpp::ll_info, fmt::format("Module {} attached to event {}", m->description(), StringNames[*n]));
         } else {
             bot->core->log(dpp::ll_warning, fmt::format("Module {} already attached to event {}", m->description(), StringNames[*n]));

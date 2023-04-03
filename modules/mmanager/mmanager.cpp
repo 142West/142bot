@@ -127,7 +127,7 @@ public:
                     } else {
                         EmbedSimple("Can't do that, check server logs", message.msg.channel_id);
                     }
-                }else if (lowercase(subcommand) == "ping") {
+                } else if (lowercase(subcommand) == "ping") {
 						dpp::channel* c = dpp::find_channel(message.msg.channel_id);
 						if (c) {
 							std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
@@ -139,7 +139,11 @@ public:
 								this->EmbedSimple(fmt::format("**Pong!** REST Response time: {:.3f} ms", microseconds_ping / 1000, 4), cid);
 							});
 						}
-               } else {
+               } else if (lowercase(subcommand) == "restart") {
+                    EmbedSimple("Restarting...", message.msg.channel_id);
+                    ::sleep(5);
+                    exit(0);
+                } else {
                 EmbedSimple("Command not found.", message.msg.channel_id);
                }
             } else {
