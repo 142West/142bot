@@ -38,7 +38,8 @@ aux_source_directory("src" coresrc)
 add_executable(142bot ${coresrc})
 
 include_directories("include")
-target_link_libraries(142bot clog dpp fmt spdlog pcre cpr::cpr)
+target_link_libraries(142bot PRIVATE clog dpp fmt::fmt spdlog::spdlog pcre cpr::cpr)
+add_dependencies(142bot clog dpp cpr fmt spdlog)
 
 install(TARGETS 142bot)
 
@@ -50,6 +51,8 @@ foreach (fullmodname ${subdirlist})
     set (modsrc "")
     aux_source_directory(${modules_dir}/${modname} modsrc)
     add_library(module_${modname} SHARED ${modsrc})
+    add_dependencies(module_${modname} dpp cpr spdlog fmt)
+    target_link_libraries(module_${modname} dpp cpr)
     install(TARGETS module_${modname} RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/142bot/")
     set_target_properties(module_${modname} PROPERTIES PREFIX "")
 endforeach(fullmodname)
