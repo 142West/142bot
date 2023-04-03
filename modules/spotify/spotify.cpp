@@ -38,7 +38,7 @@ public:
     }
 
     virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> & mentions) {
-        
+        bot->core->log(dpp::ll_debug, "Got message event");        
 
         return true;
     }
