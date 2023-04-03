@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+#include <pcre.h>
 #include <stdlib.h>
 #include "cpr/cpr.h"
 #include <142bot/modules.hpp>
@@ -39,6 +40,22 @@ public:
 
     virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> & mentions) {
         bot->core->log(dpp::ll_debug, "Got message event");        
+
+        const char* pcre_error;
+        int pcre_error_ofs;
+
+        auto comp = pcre_compile("^https:\/\/open.spotify.com\/track\/([a-zA-Z0-9]+)(.*)$", PCRE_CASELESS, &pcre_error, &pcre_error_ofs, NULL);
+        if (!comp) {
+            bot->core->log(dpp::ll_error, pcre_error);
+        }
+
+        int matcharr[90];
+        int matchcount = pcre_exec(comp, NULL, clean_message.c_str(), clean_message.length(), 0, 0, matcharr, 90);
+
+        if (matchcount > 0) {
+            // We found a spotify URL!
+            EmbedSimple("Found a spotify URL", message.msg.channel_id);
+        }
 
         return true;
     }
