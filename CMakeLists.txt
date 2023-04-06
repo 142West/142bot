@@ -33,12 +33,16 @@ find_package(fmt)
 
 string(ASCII 27 Esc)
 
+find_library(PQXX_LIB pqxx)
+find_library(PQ_LIB pq)
+
 include(GNUInstallDirs)
 aux_source_directory("src" coresrc)
 add_executable(142bot ${coresrc})
 
 include_directories("include")
-target_link_libraries(142bot PRIVATE clog dpp fmt::fmt spdlog::spdlog pcre cpr::cpr)
+target_link_libraries(142bot PRIVATE clog dpp fmt::fmt spdlog::spdlog pcre
+    cpr::cpr ${PQXX_LIB} ${PQ_LIB})
 add_dependencies(142bot clog dpp cpr fmt spdlog)
 
 install(TARGETS 142bot)

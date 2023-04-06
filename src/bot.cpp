@@ -1,19 +1,70 @@
 
 #include <dpp/snowflake.h>
 #include <stdlib.h>
+#include <string>
 #include <142bot/bot.hpp>
 #include <dpp/dpp.h>
 #include <142bot/modules.hpp>
 #include <142bot/util.hpp>
 #include <fmt/format.h>
 #include <fmt/format-inl.h>
+#include <pqxx/pqxx>
+#include <142bot/db.hpp>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 Bot::Bot(bool devel, dpp::cluster* cluster) {
     dev = devel;
     this->core = cluster;
+ 
+    std::ifstream f("config.json");
+    json cfg = json::parse(f);
+    std::string token = cfg.value("token", "bad-token");
+
+	this->conn = db::connect(cfg["postgres"]["host"], cfg["postgres"]["user"], cfg["postgres"]["pass"], cfg["postgres"]["database"], cfg["postgres"]["port"]);
+
+	run_database_migrations();
+
     this->loader = new ModuleLoader(this);
 	this->loader->load_all();
 //    this->loader->LoadAll();
+}
+
+/**
+ * Attempts to run migrations stored in a directory local to CWD.
+ * 
+ * Returns false on any error
+*/
+bool Bot::run_database_migrations() {
+
+	// Start a transaction
+	this->core->log(dpp::ll_info, "Attempting database migrations...");
+	pqxx::work w(this->conn);
+	// Get all files in ./migrations
+	std::string path = "./migrations";
+	for (const auto &entry : fs::directory_iterator(path)) {
+		std::ifstream f(entry.path());
+		std::ostringstream sstr;
+		sstr << f.rdbuf();
+		std::string stmt = sstr.str();
+
+		this->core->log(dpp::ll_debug, fmt::format("Attempting to migrate database with statement {}", stmt));
+
+		try {
+			w.exec0(stmt);
+		} catch (std::exception &e) {
+			w.abort();
+			this->core->log(dpp::ll_error, e.what());
+			return false;
+		}
+		
+	}
+
+	w.commit();
+	this->core->log(dpp::ll_info, "Done.");
+
+	return true;
 }
 
 bool Bot::isDevMode() {
