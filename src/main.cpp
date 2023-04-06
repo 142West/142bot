@@ -1,6 +1,7 @@
 #include <dpp/dpp.h>
 #include <dpp/json.h>
 #include <142bot/bot.hpp>
+#include <142bot/db.hpp>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
@@ -17,7 +18,6 @@ int main(int argc, char const *argv[]) {
     std::ifstream f("config.json");
     json cfg = json::parse(f);
     string token = cfg.value("token", "bad-token");
-
     dpp::cluster bot(token, dpp::intents::i_all_intents);
 
 		std::shared_ptr<spdlog::logger> log;
