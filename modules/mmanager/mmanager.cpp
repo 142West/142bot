@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #include <dpp/message.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <string>
 #include <142bot/modules.hpp>
 #include <142bot/util.hpp>
@@ -54,6 +54,7 @@ public:
 
     virtual bool OnMessage(const dpp::message_create_t &message, const std::string &clean_message, bool mentioned, const std::vector<std::string> &stringmentions)
     {
+       dpp::message msg = message.msg;
         sentry_set_tag("module", "mmanager");
         std::vector<std::string> param;
         const char *pcre_error;
@@ -192,12 +193,17 @@ public:
                     std::getline(tokens, sql);
                     sql = trim(sql);
                     // Create transaction
-                    pqxx::work tx(bot->conn);
+                    pqxx::work tx(bot->conn); 
 
-                    auto res = tx.exec(sql);
+                    try {
+                        auto res = tx.exec(sql);
+                    
                     std::stringstream w;
-                    dpp::message msg = message.msg;
-                    if (res.affected_rows() == 0)
+                 
+                    for (size_t i = 0; i < res.size(); i++) {
+                        bot->core->log(dpp::ll_debug, res[i][0].c_str());
+                    }
+                    if (res.size() == 0)
                     {
                         {
                             EmbedSimple("Successfully executed, no rows returned.", msg.channel_id);
@@ -205,35 +211,34 @@ public:
                     }
                     else
                     {
-                        auto rs = res.iter();
-                        w << "- " << sql << std::endl;
-                        auto check = rs.begin();
+                        w << "- " << sql << std::endl; 
+                        auto check = res.begin();
                         w << "+ Rows Returned: " << res.size() << std::endl;
-                        for (auto name = rs.begin(); name != rs.end(); ++name)
+                        for (auto row = res.begin(); row != res.end(); ++row)
                         {
-                            if (name == rs.begin())
+                            if (row == res.begin())
                             {
                                 w << "  ╭";
                             }
                             w << "────────────────────";
-                            check = name;
-                            w << (++check != rs.end() ? "┬" : "╮\n");
+                            check = row;
+                            w << (++check != res.end() ? "┬" : "╮\n");
                         }
                         w << "  ";
-                        for (auto name = rs.begin(); name != rs.end(); ++name)
+                        for (auto row = res.begin(); row != res.end(); ++row)
                         {
-   //                         w << fmt::format("│{:20}", name);
+                            w << fmt::format("│{:20}", row[0].c_str());
                         }
                         w << "│" << std::endl;
-                        for (auto name = rs.begin(); name != rs.end(); ++name)
+                        for (auto row = res.begin(); row != res.end(); ++row)
                         {
-                            if (name == rs.begin())
+                            if (row == res.begin())
                             {
                                 w << "  ├";
                             }
                             w << "────────────────────";
-                            check = name;
-                            w << (++check != rs.end() ? "┼" : "┤\n");
+                            check = row;
+                            w << (++check != res.end() ? "┼" : "┤\n");
                         }
                         for (auto row : res)
                         {
@@ -247,15 +252,15 @@ public:
                                 w << "│" << std::endl;
                             }
                         }
-                        for (auto name = rs.begin(); name != rs.end(); ++name)
+                        for (auto row = res.begin(); row != res.end(); ++row)
                         {
-                            if (name == rs.begin())
+                            if (row == res.begin())
                             {
                                 w << "  ╰";
                             }
                             w << "────────────────────";
-                            check = name;
-                            w << (++check != rs.end() ? "┴" : "╯\n");
+                            check = row;
+                            w << (++check != res.end() ? "┴" : "╯\n");
                         }
                         dpp::channel *c = dpp::find_channel(msg.channel_id);
                         if (c)
@@ -263,6 +268,20 @@ public:
                                 bot->core->message_create(dpp::message(msg.channel_id, "```diff\n" + w.str() + "```"));
                         }
                     }
+                    tx.commit();
+                } catch (std::exception &e) {
+                        std::string error_msg = fmt::format("Error in SQL statement: {}", e.what());
+                        bot->core->log(dpp::ll_error, error_msg);
+                        EmbedSimple("Error in SQL statement, check logs", msg.channel_id);
+                        sentry_value_t event = sentry_value_new_event();
+                        sentry_value_t exc = sentry_value_new_exception("Exception", "Custom SQL error");
+                        sentry_value_set_stacktrace(exc, NULL, 5);
+                        sentry_event_add_exception(event, exc);
+                        sentry_capture_event(event);
+                        tx.abort();
+                        return false;
+                    
+                } 
                 }
                 else
                 {
