@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     json cfg = json::parse(f);
     string token = cfg.value("token", "bad-token");
 	sentry_options_t *options = sentry_options_new();
-    sentry_options_set_dsn(options, "https://26f71a6064ee478c8d944b976b89eb3c@o4504969688317952.ingest.sentry.io/4504969689563136");
+    sentry_options_set_dsn(options, cfg.value("sentry_dsn", "").c_str());
   	// This is also the default-path. For further information and recommendations:
   	// https://docs.sentry.io/platforms/native/configuration/options/#database-path
   	sentry_options_set_database_path(options, ".sentry-native");
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 		});
     /* code */
 
-    Bot client(0, &bot);
+    Bot client(0, &bot, cfg.value("prefix", ".").at(0));
 
     client.set_owner_id(dpp::snowflake(cfg.value("owner", "00000000000")));
 

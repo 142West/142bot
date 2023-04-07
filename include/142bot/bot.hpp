@@ -14,12 +14,13 @@ class Bot {
 private:
 	bool run_database_migrations();
 public:
+    char prefix;
 	pqxx::connection conn;
     class dpp::cluster * core;
     /*  The bot's user from the ready event */
     dpp::user user;
 
-    Bot(bool development, dpp::cluster* cluster);
+    Bot(bool development, dpp::cluster* cluster, char prefix);
     //virtual ~Bot();
 
     void set_owner_id(dpp::snowflake id);

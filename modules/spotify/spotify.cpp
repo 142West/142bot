@@ -56,6 +56,10 @@ public:
         if (matchcount > 0) {
             // We found a spotify URL!
             EmbedSimple("Found a spotify URL", message.msg.channel_id);
+        } else {
+            if (clean_message.starts_with(bot->prefix)) {
+
+            }
         }
 
         return true;

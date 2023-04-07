@@ -15,7 +15,7 @@
 
 namespace fs = std::filesystem;
 
-Bot::Bot(bool devel, dpp::cluster* cluster) {
+Bot::Bot(bool devel, dpp::cluster* cluster, char prefix) {
     dev = devel;
     this->core = cluster;
  
