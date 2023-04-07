@@ -9,15 +9,31 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <string>
 
+#include <sentry.h>
+
+#include "142bot_config.h"
+
 using namespace std;
 
 using json = nlohmann::json;
+
+
 
 int main(int argc, char const *argv[]) {
     
     std::ifstream f("config.json");
     json cfg = json::parse(f);
     string token = cfg.value("token", "bad-token");
+	sentry_options_t *options = sentry_options_new();
+    sentry_options_set_dsn(options, "https://26f71a6064ee478c8d944b976b89eb3c@o4504969688317952.ingest.sentry.io/4504969689563136");
+  	// This is also the default-path. For further information and recommendations:
+  	// https://docs.sentry.io/platforms/native/configuration/options/#database-path
+  	sentry_options_set_database_path(options, ".sentry-native");
+  	sentry_options_set_release(options, "142bot@" + onefortytwobot_VERSION_MAJOR + '.' + onefortytwobot_VERSION_MINOR);
+  	sentry_options_set_debug(options, 0);
+	sentry_options_set_environment(options, onefortytwobot_env);
+	sentry_options_set_symbolize_stacktraces(options, 1);
+  	sentry_init(options);
     dpp::cluster bot(token, dpp::intents::i_all_intents);
 
 		std::shared_ptr<spdlog::logger> log;
@@ -68,5 +84,6 @@ int main(int argc, char const *argv[]) {
 		bot.on_message_reaction_add(std::bind(&Bot::onMessageReactionAdd, &client, std::placeholders::_1));
 
     bot.start(dpp::st_wait);
+	sentry_close();
     return 0;
 }

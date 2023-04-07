@@ -1,4 +1,5 @@
 
+#include "sentry.h"
 #include <dpp/snowflake.h>
 #include <stdlib.h>
 #include <string>
@@ -37,7 +38,8 @@ Bot::Bot(bool devel, dpp::cluster* cluster) {
  * Returns false on any error
 */
 bool Bot::run_database_migrations() {
-
+    sentry_value_t crumb = sentry_value_new_breadcrumb("debug", "Running database migrations");
+    sentry_value_set_by_key(crumb, "level", sentry_value_new_string("debug"));
 	// Start a transaction
 	this->core->log(dpp::ll_info, "Attempting database migrations...");
 	pqxx::work w(this->conn);

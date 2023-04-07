@@ -24,6 +24,7 @@
 #include <pqxx/pqxx>
 #include <fmt/format.h>
 #include <cstdarg>
+#include <sentry.h>
 
 using namespace std;
 
@@ -36,6 +37,7 @@ namespace db {
      **/
     pqxx::connection connect(const std::string &host, const std::string &user, const std::string &pass, const std::string &db, int port) {
         std::lock_guard<std::mutex> db_lock(db_mutex);
+
         
         std::string cn_s = "postgresql://";
 
@@ -59,6 +61,11 @@ namespace db {
         if (!db.empty()) {
             cn_s = cn_s + "/" + db;
         } 
+
+        sentry_value_t crumb = sentry_value_new_breadcrumb("default", "Started Database Connection");
+        sentry_value_set_by_key(crumb, "level", sentry_value_new_string("db"));
+        sentry_value_set_by_key(crumb, "data", sentry_value_new_string(cn_s.c_str()));
+        sentry_add_breadcrumb(crumb);
 
         try {
             pqxx::connection c{cn_s};

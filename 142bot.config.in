@@ -1,0 +1,6 @@
+// MODIFIED BY CMAKE
+//
+
+#define onefortytwobot_VERSION_MAJOR @onefortytwobot_VERSION_MAJOR@
+#define onefortytwobot_VERSION_MINOR @onefortytwobot_VERSION_MINOR@
+#define onefortytwobot_env "@CMAKE_BUILD_TYPE@"

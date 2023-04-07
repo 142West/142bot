@@ -8,6 +8,7 @@
 #pragma once
 
 #include "bot.hpp"
+#include <sentry.h>
 class ModuleLoader;
 class Module;
 
@@ -77,10 +78,16 @@ enum Events
                 list_to_call = loader->EventHandlers[y];           \
 				break; \
 			} \
+			sentry_remove_tag("module"); \
 		} \
 		catch (std::exception& modexcept) \
 		{ \
 			core->log(dpp::ll_error, fmt::format("Exception caught in module: {}", modexcept.what())); \
+			sentry_value_t event = sentry_value_new_event(); \
+			sentry_value_t exc = sentry_value_new_exception("Exception", modexcept.what()); \
+			sentry_value_set_stacktrace(exc, NULL, 0); \
+			sentry_event_add_exception(event, exc); \
+			sentry_capture_event(event); \
 		} \
 	} \
 };

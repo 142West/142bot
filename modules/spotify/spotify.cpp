@@ -39,6 +39,7 @@ public:
     }
 
     virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> & mentions) {
+        sentry_set_tag("module", "spotify");
         bot->core->log(dpp::ll_debug, "Got message event");        
 
         const char* pcre_error;

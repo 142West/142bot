@@ -4,6 +4,7 @@
 #include <142bot/modules.hpp>
 #include <142bot/util.hpp>
 #include <fmt/format.h>
+#include <sentry.h>
 
 using std::to_string;
 class ReactionsModule : public Module {
@@ -11,6 +12,9 @@ class ReactionsModule : public Module {
 public:
     ReactionsModule(Bot* creator, ModuleLoader* ml): Module(creator, ml) {
         ml->attach({I_OnMessage}, this);
+
+        sentry_value_t crumb = sentry_value_new_breadcrumb("default", "Loaded module reactions");
+        sentry_add_breadcrumb(crumb);
 
         std::ifstream f("resources/reactions.json");
         json reactions = json::parse(f);
@@ -28,6 +32,7 @@ public:
         return "Auto-reactions based on keyword";
     }
 	virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> &stringmentions) {
+        sentry_set_tag("module", "reactions");
         for (auto i = reactionMap.begin(); i != reactionMap.end(); i++) {
             if (lowercase(clean_message).find(i->first) != std::string::npos) {
                 bot->core->message_add_reaction(message.msg, i->second);

@@ -9,12 +9,12 @@
 class Module;
 class ModuleLoader;
 class Bot {
-	pqxx::connection conn;
     bool dev;
     dpp::snowflake owner_id;
 private:
 	bool run_database_migrations();
 public:
+	pqxx::connection conn;
     class dpp::cluster * core;
     /*  The bot's user from the ready event */
     dpp::user user;
