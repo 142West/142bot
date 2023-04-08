@@ -1,0 +1,21 @@
+{
+    "token": "bad-token",
+    "modules": [
+        "module_reactions.so",
+        "module_mmanager.so"
+    ],
+    "owner": "changeme",
+    "postgres": {
+        "host": "localhost",
+        "port": 5432,
+        "user": "",
+        "pass": "",
+        "database": "142bot-devel"
+    },
+    "spotify": {
+        "secret": "changeme",
+        "id": "changeme"
+    },
+    "sentry_dsn": "",
+    "module_path": "./build/"
+}
