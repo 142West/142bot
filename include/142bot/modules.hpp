@@ -54,6 +54,7 @@ enum Events
 	I_OnVoiceStateUpdate,
 	I_OnVoiceServerUpdate,
 	I_OnWebhooksUpdate,
+	I_OnCommand,
 	I_END
 };
 
@@ -72,13 +73,16 @@ enum Events
 	} \
 	for (auto _i = list_to_call.begin(); _i != list_to_call.end(); ++_i) \
 	{ \
+		core->log(dpp::ll_debug, fmt::format("Attempting to call module")); \
 		try \
 		{ \
 			if (!(*_i)->x) {        \
                 list_to_call = loader->EventHandlers[y];           \
+				core->log(dpp::ll_error, "Something happened!"); \
 				break; \
 			} \
 			sentry_remove_tag("module"); \
+			core->log(dpp::ll_debug, "called module 1"); \
 		} \
 		catch (std::exception& modexcept) \
 		{ \
@@ -89,6 +93,7 @@ enum Events
 			sentry_event_add_exception(event, exc); \
 			sentry_capture_event(event); \
 		} \
+		core->log(dpp::ll_debug, "Called module"); \
 	} \
 };
 
@@ -196,6 +201,7 @@ public:
 	virtual bool OnVoiceStateUpdate(const dpp::voice_state_update_t &obj);
 	virtual bool OnVoiceServerUpdate(const dpp::voice_server_update_t &obj);
 	virtual bool OnWebhooksUpdate(const dpp::webhooks_update_t &obj);
+	virtual bool OnCommand(const dpp::message_create_t &message, const std::string &command, const std::vector<std::string>& params);
 	void EmbedSimple(const std::string &message, int64_t channelID);
 };
 

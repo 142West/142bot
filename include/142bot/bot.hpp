@@ -2,6 +2,7 @@
 #include <dpp/user.h>
 #include <dpp/dpp.h>
 #include <pqxx/pqxx>
+#include <nlohmann/json.hpp>
 
 
 #ifndef BOT_HPP
@@ -17,10 +18,11 @@ public:
     char prefix;
 	pqxx::connection conn;
     class dpp::cluster * core;
+	json cfg;
     /*  The bot's user from the ready event */
     dpp::user user;
 
-    Bot(bool development, dpp::cluster* cluster, char prefix);
+    Bot(bool development, dpp::cluster* cluster, char prefix, json &cfg);
     //virtual ~Bot();
 
     void set_owner_id(dpp::snowflake id);

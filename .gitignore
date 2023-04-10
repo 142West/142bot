@@ -97,3 +97,5 @@ tags
 build/
 config.json
 .cache/
+.sentry-native
+*.log

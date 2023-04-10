@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 		});
     /* code */
 
-    Bot client(0, &bot, cfg.value("prefix", ".").at(0));
+    Bot client(0, &bot, cfg.value("prefix", ".").at(0), cfg);
 
     client.set_owner_id(dpp::snowflake(cfg.value("owner", "00000000000")));
 

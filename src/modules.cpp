@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <link.h>
 
+#include <stdlib.h>
+
 const char* StringNames[I_END + 1] = {
 	"I_BEGIN",
 	"I_OnMessage",
@@ -45,6 +47,7 @@ const char* StringNames[I_END + 1] = {
 	"I_OnVoiceStateUpdate",
 	"I_OnVoiceServerUpdate",
 	"I_OnWebhooksUpdate",
+	"I_OnCommand",
 	"I_END"
 };
 
@@ -95,7 +98,7 @@ bool ModuleLoader::load(const std::string &fname) {
 
     if (Modules.find(fname) == Modules.end()) {
         char buffer[PATH_MAX + 1];
-        getcwd(buffer, PATH_MAX);
+        realpath(bot->cfg.value("module_path", ".").c_str(), buffer);
         std::string full_path = std::string(buffer) + "/" + fname;
 
         m.dlopen_handle = dlopen(full_path.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -426,6 +429,11 @@ bool Module::OnVoiceServerUpdate(const dpp::voice_server_update_t &obj)
 
 bool Module::OnWebhooksUpdate(const dpp::webhooks_update_t &obj)
 {
+	return true;
+}
+
+bool Module::OnCommand(const dpp::message_create_t &message, const std::string &command, const std::vector<std::string>& params) {
+	bot->core->log(dpp::ll_debug, "Called default OnCommand...");
 	return true;
 }
 

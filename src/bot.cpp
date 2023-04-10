@@ -12,15 +12,16 @@
 #include <pqxx/pqxx>
 #include <142bot/db.hpp>
 #include <filesystem>
+#include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
 
-Bot::Bot(bool devel, dpp::cluster* cluster, char prefix) {
+Bot::Bot(bool devel, dpp::cluster* cluster, char prefix, json &cfg) {
     dev = devel;
     this->core = cluster;
- 
-    std::ifstream f("config.json");
-    json cfg = json::parse(f);
+	this->prefix = prefix;
+	this->cfg = cfg;
+
     std::string token = cfg.value("token", "bad-token");
 
 	this->conn = db::connect(cfg["postgres"]["host"], cfg["postgres"]["user"], cfg["postgres"]["pass"], cfg["postgres"]["database"], cfg["postgres"]["port"]);
@@ -107,6 +108,7 @@ void Bot::onMessage(const dpp::message_create_t &message) {
 	}
 	/* Ignore self, and bots */
 	if (message.msg.author.id != user.id && message.msg.author.is_bot() == false) {
+		core->log(dpp::ll_debug, "Got message event");
 
 		/* Replace all mentions with raw nicknames */
 		bool mentioned = false;
@@ -129,9 +131,33 @@ void Bot::onMessage(const dpp::message_create_t &message) {
 		}
 		/* Remove linefeeds, they mess with botnix */
 		mentions_removed = trim(mentions_removed);
+		if (message.msg.content.starts_with(this->prefix)) {
+			// Command
+			core->log(dpp::ll_debug, fmt::format("Got command: {}", mentions_removed));
 
-		/* Call modules */
-		FOREACH_MOD(I_OnMessage,OnMessage(message, mentions_removed, mentioned, stringmentions));
+			// Tokenize
+		    std::vector<std::string> result;
+
+		    const char* str = message.msg.content.c_str();
+
+            do
+            {
+                const char *begin = str;
+                while(*str != ' ' && *str)
+                    str++;
+					core->log(dpp::ll_debug, std::string(begin, str));
+
+	                result.push_back(std::string(begin, str));
+            } while (0 != *str++);
+			core->log(dpp::ll_debug, "Attempting to call FOREACH_MOD");
+			FOREACH_MOD(I_OnCommand,OnCommand(message, result[0], result));
+
+		} else {
+			/* Call modules */
+			core->log(dpp::ll_debug, fmt::format("Got regular message: {}", mentions_removed));
+			FOREACH_MOD(I_OnMessage,OnMessage(message, mentions_removed, 
+			mentioned, stringmentions));
+		}
 	}
 }
 

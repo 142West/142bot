@@ -64,6 +64,7 @@ public:
         {
             bot->core->log(dpp::ll_error, pcre_error);
         }
+        bot->core->log(dpp::ll_debug, "Test");
 
         int matcharr[90];
         int matchcount = pcre_exec(comp, NULL, clean_message.c_str(), clean_message.length(), 0, 0, matcharr, 90);

@@ -19,13 +19,14 @@
 #include <stdlib.h>
 #include "cpr/cpr.h"
 #include <142bot/modules.hpp>
+#include <fmt/format.h>
 
 
 class SpotifyModule: public Module {
     std::string spotifyRegex;
 public:
     SpotifyModule(Bot* creator, ModuleLoader* ml) : Module(creator, ml) {
-        ml->attach({I_OnMessage}, this);
+        ml->attach({I_OnMessage, I_OnCommand}, this);
 
         this->spotifyRegex = "^https:\/\/open.spotify.com\/track\/([a-zA-Z0-9]+)(.*)$";
     }
@@ -58,9 +59,17 @@ public:
             EmbedSimple("Found a spotify URL", message.msg.channel_id);
         } else {
             if (clean_message.starts_with(bot->prefix)) {
-
+                
             }
         }
+
+        return true;
+    }
+	virtual bool OnCommand(const dpp::message_create_t &message, const std::string &command, std::vector<std::string>& params) {
+        bot->core->log(dpp::ll_debug, fmt::format("spotify Got command: {}", command));
+        printf("Am i getting called?????\n");
+
+        EmbedSimple("Got your command!", message.msg.channel_id);
 
         return true;
     }
