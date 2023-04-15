@@ -203,6 +203,9 @@ public:
 	virtual bool OnWebhooksUpdate(const dpp::webhooks_update_t &obj);
 	virtual bool OnCommand(const dpp::message_create_t &message, const std::string &command, const std::vector<std::string>& params);
 	void EmbedSimple(const std::string &message, int64_t channelID);
+	void EmbedError(int64_t channelId, std::exception &e);
+	void EmbedError(const std::string &message, int64_t channelId);
+	void EmbedSuccess(const std::string &message, int64_t channelId);
 };
 
 /* A macro that lets us simply define the entrypoint of a module by name */

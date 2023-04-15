@@ -471,3 +471,38 @@ void Module::EmbedSimple(const std::string &message, int64_t channelID)
 		bot->core->log(dpp::ll_error, fmt::format("Invalid channel {} passed to EmbedSimple", channelID));
 	}
 }
+
+void Module::EmbedError(int64_t channelId, std::exception &e) {
+	std::string msg = "Got an error running that command!\n\n```";
+	msg.append(e.what());
+	msg.append("\n```");
+	dpp::embed embed = dpp::embed()
+		.set_color(dpp::colors::red)
+		.set_title("Error")
+		.set_description(msg);
+
+	bot->core->message_create(dpp::message(channelId, embed));
+}
+
+
+void Module::EmbedError(const std::string &message, int64_t channelId) {
+	std::string msg = "Got an error running that command!\n\n```";
+	msg.append(message);
+	msg.append("\n```");
+	dpp::embed embed = dpp::embed()
+		.set_color(dpp::colors::red)
+		.set_title("Error")
+		.set_description(msg);
+
+	bot->core->message_create(dpp::message(channelId, embed));
+}
+
+
+void Module::EmbedSuccess(const std::string &message, int64_t channelId) {
+	dpp::embed embed = dpp::embed()
+		.set_color(dpp::colors::green)
+		.set_title("Success!")
+		.set_description(message);
+
+	bot->core->message_create(dpp::message(channelId, embed));
+}

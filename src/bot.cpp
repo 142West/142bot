@@ -150,7 +150,7 @@ void Bot::onMessage(const dpp::message_create_t &message) {
 	                result.push_back(std::string(begin, str));
             } while (0 != *str++);
 			core->log(dpp::ll_debug, "Attempting to call FOREACH_MOD");
-			FOREACH_MOD(I_OnCommand,OnCommand(message, result[0], result));
+			FOREACH_MOD(I_OnCommand,OnCommand(message, lowercase(result[0].erase(0,1)), result));
 
 		} else {
 			/* Call modules */
