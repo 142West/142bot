@@ -78,7 +78,7 @@ namespace pqxx
         static asdf::timestamp from_string( std::string_view &text )
         {
             asdf::timestamp ts;
-            if( !asdf::from_iso8601_str( std::string{ text } + "00", ts ) )
+            if( !asdf::from_iso8601_str( std::string{ text }, ts ) )
                 throw argument_error{
                     "Failed conversion to "
                     + static_cast< std::string >( name() )
@@ -96,7 +96,7 @@ namespace pqxx
         }
 
         static char* into_buf(char* begin, char* end, asdf::timestamp const &value) {
-            return pqxx::internal::generic_into_buf(begin, end, value);
+            return pqxx::string_traits<std::string>::into_buf(begin, end, asdf::to_iso8601_str(value));
         }
 
         static zview to_buf(char* begin, char* end, asdf::timestamp const &value) {
@@ -104,7 +104,7 @@ namespace pqxx
         }
 
         static std::size_t size_buffer(asdf::timestamp const &value) noexcept {
-            return pqxx::string_traits<std::string>::size_buffer(asdf::to_iso8601_str(value)) + 1;
+            return pqxx::string_traits<std::string>::size_buffer(asdf::to_iso8601_str(value));
         }
     };
 

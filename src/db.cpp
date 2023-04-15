@@ -106,13 +106,13 @@ namespace asdf
     bool from_iso8601_str( const std::string& s, timestamp& ts )
     {
         std::istringstream stream{ s };
-        stream >> date::parse( "%F %T%z", ts );
+        stream >> date::parse( "%F %T", ts );
         return !stream.fail();
     }
     
     std::string to_iso8601_str( const timestamp& ts )
     {
-        return date::format( "%F %T%z", ts );
+        return date::format( "%F %T", ts );
     }
     
     std::string to_http_ts_str( const timestamp& ts )

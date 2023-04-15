@@ -32,6 +32,7 @@ class SpotifyModule: public Module {
     std::string spotifyRegex;
     std::string defaultSpotifyAccount;
     std::string spotifyBaseUrl;
+    std::string spotifyDefaultDevice;
 public:
     SpotifyModule(Bot* creator, ModuleLoader* ml) : Module(creator, ml) {
         ml->attach({I_OnMessage, I_OnCommand}, this);
@@ -39,6 +40,7 @@ public:
         this->spotifyRegex = "^https:\/\/open.spotify.com\/track\/([a-zA-Z0-9]+)(.*)$";
         this->defaultSpotifyAccount = "1";
         this->spotifyBaseUrl = "https://api.spotify.com/v1";
+        this->spotifyDefaultDevice = "";
     }
 
     virtual std::string version() {
@@ -120,7 +122,7 @@ public:
      * Performs a GET request to the Spotify API
     */
     json spotify_get(const std::string route) {
-        bot->core->log(dpp::ll_debug, fmt::format("Making GET request to {}", route));
+        bot->core->log(dpp::ll_debug, fmt::format("Making GET request to {}/{}", this->spotifyBaseUrl, route));
 
         std::string token = get_spotify_token();
         bot->core->log(dpp::ll_trace, "Obtained token.");
@@ -138,6 +140,31 @@ public:
         return json::parse(r.text);
     }
 
+    void spotify_post(const std::string route) {
+        return spotify_post(route, 200);
+    }
+
+    /**
+     * Performs a POST request to the Spotify API
+    */
+   void spotify_post(const std::string route, int expected_code) {
+        bot->core->log(dpp::ll_debug, fmt::format("Making spotify POST to {}", route));
+        std::string token = get_spotify_token();
+        bot->core->log(dpp::ll_trace, "Obtained Token.");
+
+        cpr::Response r = cpr::Post(cpr::Url{fmt::format("{}/{}", this->spotifyBaseUrl, route).c_str()},
+            cpr::Bearer{token});
+        bot->core->log(dpp::ll_trace, fmt::format("Made request. Code: {}", r.status_code));
+
+        if (r.status_code != expected_code) {
+            bot->core->log(dpp::ll_error, fmt::format("Spotify API Error: {}", r.text));
+            throw std::exception();
+        }
+
+        return;
+   }
+
+
     virtual bool OnMessage(const dpp::message_create_t &message, const std::string& clean_message, bool mentioned, const std::vector<std::string> & mentions) {
         sentry_set_tag("module", "spotify");
         bot->core->log(dpp::ll_debug, "Got message event");        
@@ -150,10 +177,15 @@ public:
             try {
                 json res = spotify_get("tracks/" + match.str(1));
 
+                std::string post_rt = fmt::format("me/player/queue?uri=spotify:track:{}{}", match.str(1), this->spotifyDefaultDevice != "" ? "&device_id=" + this->spotifyDefaultDevice : "");                
+
+                spotify_post(post_rt, 204);
+        
                 dpp::embed embed = dpp::embed()
                     .set_title(res["name"])
-                    .set_author(res["artists"][0]["name"], "", "")
-                    .set_image(res["album"]["images"][0]["url"]);
+                    .set_author(res["artists"][0]["name"], res["artists"][0]["external_urls"]["spotify"], "")
+                    .set_thumbnail(res["album"]["images"][0]["url"])
+                    .set_description("Added to the queue!");
 
                 bot->core->message_create(dpp::message(message.msg.channel_id, embed).set_reference(message.msg.id));
                 return true;
@@ -194,7 +226,7 @@ public:
 
                 bot->core->message_create(dpp::message(message.msg.channel_id, embed).set_reference(message.msg.id));
                 return true;
-            } else if (subcommand == "default") {
+            } else if (subcommand == "account") {
                 pqxx::work tx(bot->conn);
 
                 try {
@@ -216,6 +248,52 @@ public:
                 }
 
                 EmbedSuccess("Updated default account.", message.msg.channel_id);
+            }else if (subcommand == "devices") {
+                json res = spotify_get("me/player/devices");
+
+                auto devices = res["devices"];
+                dpp::embed embed = dpp::embed().
+                    set_color(dpp::colors::green)
+                    .set_title("Spotify Devices")
+                    .set_description("List of Spotify devices. Username is field ID and ID is field content.\n\nCurrent default account ID: " + this->defaultSpotifyAccount);
+
+
+                for (int i = 0; i < devices.size(); i++) {
+                    std::string name = fmt::format("{} ({})", devices[i]["name"], devices[i]["id"].get<std::string>());
+                    std::string content = fmt::format("{} {}", devices[i]["type"].get<std::string>(), devices[i]["id"].get<std::string>() == this->spotifyDefaultDevice ? "(Default)" : "");
+                    embed.add_field(name, content, true);
+                }
+                bot->core->message_create(dpp::message(message.msg.channel_id, embed).set_reference(message.msg.id));
+
+            } else if (subcommand == "device") {
+                json res = spotify_get("me/player/devices");
+
+                auto devices = res["devices"];
+
+                for (int i = 0; i < devices.size(); i++) {
+                    if (devices[i]["id"] == params[2]) {
+                        this->spotifyDefaultDevice = params[2];
+                        EmbedSuccess("Changed default spotify device", message.msg.channel_id);
+                        return true;
+                    }
+                }
+
+                EmbedError("Invalid ID", message.msg.channel_id);
+            } else if (subcommand == "status") {
+                auto res = spotify_get("me/player");
+
+                auto item = res["item"];
+                auto device = res["device"];
+                auto album = item["album"];
+
+                dpp::embed embed = dpp::embed()
+                    .set_author(item["artists"][0]["name"], item["artists"][0]["external_urls"]["spotify"], "")
+                    .set_title(fmt::format("\"{}\" on {} by {}", item["name"], album["name"], album["artists"][0]["name"]))
+                    .set_thumbnail(album["images"][0]["url"])
+                    .add_field("Status", res["is_playing"].get<bool>() ? "Playing" : "Paused", true)
+                    .add_field("Repeating?", res["repeat_state"], true);
+
+                bot->core->message_create(dpp::message(message.msg.channel_id, embed).set_reference(message.msg.id));
             } else {
                 EmbedError("Unknown Command", message.msg.channel_id);
             }
