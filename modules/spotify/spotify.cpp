@@ -49,7 +49,7 @@ public:
         return "Manage spotify queues for 142";
     }
 
-    void refreshSpotify(std::string refreshToken, pqxx::work &tx) {
+    void refreshSpotify(std::string refreshToken) {
         bot->core->log(dpp::ll_debug, "Attempting to refresh spotify token...");
         cpr::Response r = cpr::Post(cpr::Url("https://accounts.spotify.com/api/token"), 
             cpr::Authentication{bot->cfg["spotify"]["id"], bot->cfg["spotify"]["secret"], cpr::AuthMode::BASIC}, cpr::Payload{{"grant_type", "refresh_token"}, {"refresh_token", refreshToken}});
@@ -61,16 +61,16 @@ public:
             throw std::exception();
         }
         bot->core->log(dpp::ll_trace, "Request successful");
-        printf("%s\n", r.text.c_str());
         auto tmp = json::parse(r.text);
         bot->core->log(dpp::ll_trace, "Parsed JSON");
 
         uint64_t expires = tmp["expires_in"].get<uint64_t>();
 
+        pqxx::work tx(bot->conn);
         asdf::timestamp parsed_expires = asdf::from_unix_time(time(0) + expires);
-        bot->core->log(dpp::ll_trace, "Got expires_in");
+        bot->core->log(dpp::ll_trace, fmt::format("Got expires_in: {}", asdf::to_iso8601_str(parsed_expires)));
         std::string access = tmp["access_token"].get<std::string>();
-        bot->core->log(dpp::ll_trace, "Got access token");
+        bot->core->log(dpp::ll_trace, fmt::format("Got access token"));
         tx.exec_params("UPDATE spotify SET spotify_token=$1, spotify_token_expires=$2 WHERE id=$3", access, parsed_expires, this->defaultSpotifyAccount);
         bot->core->log(dpp::ll_trace, "Updated DB");
         tx.commit();
@@ -85,13 +85,16 @@ public:
         try {
             bot->core->log(dpp::ll_debug, fmt::format("Default spotify account: {}", this->defaultSpotifyAccount));
             auto res = tx.exec_params1("SELECT spotify_username,spotify_token,spotify_token_expires,spotify_refresh_token FROM spotify WHERE id=$1", atoi(this->defaultSpotifyAccount.c_str()));
+            tx.commit();
             bot->core->log(dpp::ll_trace, "Retrieved from DB.");
 
             auto ts = res[2].as<asdf::timestamp>();
 
             if (ts < std::chrono::system_clock::now()) {
-                refreshSpotify(res[3].as<std::string>(), tx);
+                refreshSpotify(res[3].as<std::string>());
+                pqxx::work tx(bot->conn);
                 res = tx.exec_params1("SELECT spotify_username, spotify_token FROM spotify WHERE id=$1", atoi(this->defaultSpotifyAccount.c_str()));
+                tx.commit();
                 bot->core->log(dpp::ll_trace, "Retrieved from database *again*");
             }
 
