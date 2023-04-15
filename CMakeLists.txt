@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(onefortytwobot VERSION 0.1 LANGUAGES CXX C)
+project(onefortytwobot VERSION 0.3 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20 REQUIRED)
 
