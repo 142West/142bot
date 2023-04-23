@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS bot_state (
+    id SERIAL PRIMARY KEY,
+    setting TEXT NOT NULL,
+    value TEXT NOT NULL
+);

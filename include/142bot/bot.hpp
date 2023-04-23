@@ -14,6 +14,7 @@ class Bot {
     dpp::snowflake owner_id;
 private:
 	bool run_database_migrations();
+	void create_queries();
 public:
     char prefix;
 	pqxx::connection conn;

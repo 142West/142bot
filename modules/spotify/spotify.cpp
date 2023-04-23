@@ -38,9 +38,24 @@ public:
         ml->attach({I_OnMessage, I_OnCommand}, this);
 
         this->spotifyRegex = "^https:\/\/open.spotify.com\/track\/([a-zA-Z0-9]+)(.*)$";
-        this->defaultSpotifyAccount = "1";
+
+        pqxx::work tx(creator->conn);
+        try {
+            auto rs = tx.exec_prepared1("state", "default_spotify_account");
+            this->defaultSpotifyAccount = rs[0].as<std::string>();
+        } catch (std::exception &e) {
+            creator->core->log(dpp::ll_warning, "Couldn't find default_spotify_account in state, creating");
+            tx.exec_prepared("update_state", "default_spotify_account", "1");
+        } 
         this->spotifyBaseUrl = "https://api.spotify.com/v1";
-        this->spotifyDefaultDevice = "";
+        try {
+            auto rs = tx.exec_prepared1("state", "default_spotify_device");
+            this->spotifyDefaultDevice = rs[0].as<std::string>();
+        } catch (std::exception &e) {
+            creator->core->log(dpp::ll_warning, "Couldn't find default_spotify_device in state, creating");
+            tx.exec_prepared("update_state", "default_spotify_device", "");
+        }
+        tx.commit();
     }
 
     virtual std::string version() {
@@ -233,6 +248,7 @@ public:
                     auto res = tx.exec_params1("SELECT id FROM spotify WHERE id=$1", params[2]);
 
                     this->defaultSpotifyAccount = params[2];
+                    tx.exec_prepared("update_state", "default_spotify_account", params[2]);
 
                     tx.commit();
                 } catch (std::exception &e) {
@@ -273,6 +289,9 @@ public:
                 for (int i = 0; i < devices.size(); i++) {
                     if (devices[i]["id"] == params[2]) {
                         this->spotifyDefaultDevice = params[2];
+                        pqxx::work tx(bot->conn);
+                        tx.exec_prepared("update_state", "default_spotify_device", params[2]);
+                        tx.commit();
                         EmbedSuccess("Changed default spotify device", message.msg.channel_id);
                         return true;
                     }

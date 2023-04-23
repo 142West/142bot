@@ -67,7 +67,18 @@ bool Bot::run_database_migrations() {
 	w.commit();
 	this->core->log(dpp::ll_info, "Done.");
 
+	this->core->log(dpp::ll_info, "Preparing statements...");
+	create_queries();
+	this->core->log(dpp::ll_info, "Done");
+
 	return true;
+}
+
+void Bot::create_queries() {
+	this->core->log(dpp::ll_trace, "Preparing state query");
+	this->conn.prepare("state", "SELECT value FROM bot_state WHERE setting=$1");	
+	this->core->log(dpp::ll_trace, "Preparing update state query");
+	this->conn.prepare("update_state", "INSERT INTO bot_state (setting,value) VALUES ($1, $2) ON CONFLICT (setting) DO UPDATE SET value=EXCLUDED.value;");
 }
 
 bool Bot::isDevMode() {
