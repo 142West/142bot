@@ -35,32 +35,11 @@ namespace db {
     /**
      * Connects to a postgres database, returns false if error
      **/
-    pqxx::connection connect(const std::string &host, const std::string &user, const std::string &pass, const std::string &db, int port) {
+    pqxx::connection connect(const std::string cn_s) {
         std::lock_guard<std::mutex> db_lock(db_mutex);
 
-        
-        std::string cn_s = "postgresql://";
 
-        if (!user.empty()) {
-            cn_s = cn_s + user;
-        }
-        if (!pass.empty() && !user.empty()) {
-            cn_s = cn_s + ":" + pass;
-        }
-
-        if ((!user.empty() || !pass.empty())) {
-            cn_s = cn_s + "@";
-        }
-
-        if (!host.empty()) {
-            cn_s = cn_s + "localhost";
-        }
-        if (port != 0 && !host.empty()) {
-            cn_s = cn_s + ":" + std::to_string(port);
-        }
-        if (!db.empty()) {
-            cn_s = cn_s + "/" + db;
-        } 
+        cout << cn_s << endl;
 
         sentry_value_t crumb = sentry_value_new_breadcrumb("default", "Started Database Connection");
         sentry_value_set_by_key(crumb, "level", sentry_value_new_string("db"));

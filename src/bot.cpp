@@ -24,7 +24,10 @@ Bot::Bot(bool devel, dpp::cluster* cluster, char prefix, json &cfg) {
 
     std::string token = cfg.value("token", "bad-token");
 
-	this->conn = db::connect(cfg["postgres"]["host"], cfg["postgres"]["user"], cfg["postgres"]["pass"], cfg["postgres"]["database"], cfg["postgres"]["port"]);
+	this->core->log(dpp::ll_debug, "Attempting DB connection");
+
+
+	this->conn = db::connect(cfg.value("postgres", "postgres://localhost/142bot"));
 
 	run_database_migrations();
 

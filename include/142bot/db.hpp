@@ -31,7 +31,7 @@ namespace db {
 
     typedef std::vector<std::variant<float, std::string, uint64_t, int64_t, bool, int32_t, uint32_t, double>> paramlist;
 
-    pqxx::connection connect(const std::string &host, const std::string &user, const std::string &pass, const std::string &db, int port);
+    pqxx::connection connect(const std::string cn_s);
     bool close();
     resultset query(const std::string &format, const paramlist &parameters);
     const std::string& error();
