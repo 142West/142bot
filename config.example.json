@@ -5,6 +5,7 @@
         "module_mmanager.so"
     ],
     "owner": "changeme",
+    "main_guild": "changeme",
     "postgres": {
         "host": "localhost",
         "port": 5432,

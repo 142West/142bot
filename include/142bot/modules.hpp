@@ -55,6 +55,8 @@ enum Events
 	I_OnVoiceServerUpdate,
 	I_OnWebhooksUpdate,
 	I_OnCommand,
+	I_OnSlashCommand,
+	I_OnFormSubmit,
 	I_END
 };
 
@@ -202,6 +204,8 @@ public:
 	virtual bool OnVoiceServerUpdate(const dpp::voice_server_update_t &obj);
 	virtual bool OnWebhooksUpdate(const dpp::webhooks_update_t &obj);
 	virtual bool OnCommand(const dpp::message_create_t &message, const std::string &command, const std::vector<std::string>& params);
+	virtual bool OnSlashCommand(const dpp::slashcommand_t &event);
+	virtual bool OnFormSubmit(const dpp::form_submit_t &event);
 	void EmbedSimple(const std::string &message, int64_t channelID);
 	void EmbedError(int64_t channelId, std::exception &e);
 	void EmbedError(const std::string &message, int64_t channelId);

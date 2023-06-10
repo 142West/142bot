@@ -82,6 +82,8 @@ int main(int argc, char const *argv[]) {
 		bot.on_message_create(std::bind(&Bot::onMessage, &client, std::placeholders::_1));
 		bot.on_ready(std::bind(&Bot::onReady, &client, std::placeholders::_1));
 		bot.on_message_reaction_add(std::bind(&Bot::onMessageReactionAdd, &client, std::placeholders::_1));
+		bot.on_slashcommand(std::bind(&Bot::onSlashCommand, &client, std::placeholders::_1));
+		bot.on_form_submit(std::bind(&Bot::onFormSubmit, &client, std::placeholders::_1));
 
     bot.start(dpp::st_wait);
 	sentry_close();

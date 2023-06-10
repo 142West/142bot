@@ -48,6 +48,8 @@ const char* StringNames[I_END + 1] = {
 	"I_OnVoiceServerUpdate",
 	"I_OnWebhooksUpdate",
 	"I_OnCommand",
+	"I_OnSlashCommand",
+	"I_OnFormSubmit",
 	"I_END"
 };
 
@@ -434,6 +436,14 @@ bool Module::OnWebhooksUpdate(const dpp::webhooks_update_t &obj)
 
 bool Module::OnCommand(const dpp::message_create_t &message, const std::string &command, const std::vector<std::string>& params) {
 	bot->core->log(dpp::ll_debug, "Called default OnCommand...");
+	return true;
+}
+
+bool Module::OnSlashCommand(const dpp::slashcommand_t &event) {
+	return true;
+}
+
+bool Module::OnFormSubmit(const dpp::form_submit_t &event) {
 	return true;
 }
 

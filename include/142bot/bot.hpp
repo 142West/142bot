@@ -68,6 +68,8 @@ public:
 	void onVoiceStateUpdate (const dpp::voice_state_update_t &event);
 	void onVoiceServerUpdate (const dpp::voice_server_update_t &event);
 	void onWebhooksUpdate (const dpp::webhooks_update_t &event);
+	void onSlashCommand (const dpp::slashcommand_t &event);
+	void onFormSubmit (const dpp::form_submit_t &event);
 };
 
 #endif

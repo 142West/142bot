@@ -346,3 +346,10 @@ void Bot::onWebhooksUpdate(const dpp::webhooks_update_t &obj)
 	
 }
 
+void Bot::onSlashCommand(const dpp::slashcommand_t &event) {
+	FOREACH_MOD(I_OnSlashCommand, OnSlashCommand(event));
+}
+
+void Bot::onFormSubmit(const dpp::form_submit_t &event) {
+	FOREACH_MOD(I_OnFormSubmit, OnFormSubmit(event));
+}
