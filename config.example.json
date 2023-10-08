@@ -18,5 +18,6 @@
         "id": "changeme"
     },
     "sentry_dsn": "",
-    "module_path": "./build/"
+    "module_path": "./build/",
+    "stoplight_base": "http://stoplight.onefortytwo.life:8000"
 }
