@@ -1,13 +1,16 @@
+#include <curl/curl.h>
 #include <dpp/dpp.h>
 #include <dpp/json.h>
 #include <142bot/bot.hpp>
 #include <142bot/db.hpp>
 
+#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <string>
+#include <fmt/format.h>
 
 #include <sentry.h>
 
@@ -23,15 +26,16 @@ int main(int argc, char const *argv[]) {
     
     std::ifstream f("config.json");
     json cfg = json::parse(f);
+    curl_global_init(CURL_GLOBAL_ALL);
     string token = cfg.value("token", "bad-token");
 	sentry_options_t *options = sentry_options_new();
     sentry_options_set_dsn(options, cfg.value("sentry_dsn", "").c_str());
   	// This is also the default-path. For further information and recommendations:
   	// https://docs.sentry.io/platforms/native/configuration/options/#database-path
   	sentry_options_set_database_path(options, ".sentry-native");
-  	sentry_options_set_release(options, "142bot@" + onefortytwobot_VERSION_MAJOR + '.' + onefortytwobot_VERSION_MINOR);
+    sentry_options_set_release(options, fmt::format("142bot@{}", PACKAGE_VERSION).c_str());
   	sentry_options_set_debug(options, 0);
-	sentry_options_set_environment(options, onefortytwobot_env);
+	sentry_options_set_environment(options, "production");
 	sentry_options_set_symbolize_stacktraces(options, 1);
   	sentry_init(options);
     dpp::cluster bot(token, dpp::intents::i_all_intents);
