@@ -51,6 +51,7 @@ namespace db {
             return c;
         } catch (std::exception const &e) {
             _error = e.what();
+	    printf("%s\n", e.what());
             throw e;
         }
     }
