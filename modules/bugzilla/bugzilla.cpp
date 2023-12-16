@@ -1,5 +1,6 @@
 #include <142bot/modules.hpp>
 #include "cpr/cpr.h"
+#include <fmt/format.h>
 #include <cpr/response.h>
 #include <dpp/dispatcher.h>
 #include <dpp/dpp.h>
@@ -31,7 +32,7 @@ public:
     bot->core->log(dpp::ll_debug, fmt::format("Bugzilla: making GET request to {}/{}", this->bugzillaBaseUrl, route));
 
     cpr::Response r = cpr::Get(cpr::Url{fmt::format("{}/{}&api_key={}", this->bugzillaBaseUrl, route, this->bugzillaApiKey).c_str()},
-			       cpr::Header{{"accept": "application/json"}, {"Content-Type", "application/json"}});
+			       cpr::Header{"Content-Type", "application/json"});
 
     bot->core->log(dpp::ll_trace, fmt::format("Bugzilla: made request. Code: {}", r.status_code));
 
@@ -53,6 +54,10 @@ public:
     if (std::regex_search(clean_message, match, re) == true) {
       // we found a bug thing!
       bot->core->message_create(dpp::message(message.msg.channel_id, "Found a bug! " + match.str(1)));
+
+      json res = bugzilla_get(fmt::format("/bugs?id={}", match.str(1)));
+      bot->core->log(dpp::ll_debug, res);
+      
       return true;
     }
 
